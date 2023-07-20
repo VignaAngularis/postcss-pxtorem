@@ -91,24 +91,24 @@ function createPropListMatcher(propList) {
     return (
       (hasWild ||
         lists.exact.indexOf(prop) > -1 ||
-        lists.contain.some(function(m) {
+        lists.contain.some(function (m) {
           return prop.indexOf(m) > -1;
         }) ||
-        lists.startWith.some(function(m) {
+        lists.startWith.some(function (m) {
           return prop.indexOf(m) === 0;
         }) ||
-        lists.endWith.some(function(m) {
+        lists.endWith.some(function (m) {
           return prop.indexOf(m) === prop.length - m.length;
         })) &&
       !(
         lists.notExact.indexOf(prop) > -1 ||
-        lists.notContain.some(function(m) {
+        lists.notContain.some(function (m) {
           return prop.indexOf(m) > -1;
         }) ||
-        lists.notStartWith.some(function(m) {
+        lists.notStartWith.some(function (m) {
           return prop.indexOf(m) === 0;
         }) ||
-        lists.notEndWith.some(function(m) {
+        lists.notEndWith.some(function (m) {
           return prop.indexOf(m) === prop.length - m.length;
         })
       )
@@ -122,7 +122,7 @@ module.exports = (options = {}) => {
   const satisfyPropList = createPropListMatcher(opts.propList);
   const exclude = opts.exclude;
   let isExcludeFile = false;
-  let pxReplace;
+  let pxReplace = new Map();
   return {
     postcssPlugin: "postcss-pxtorem",
     Once(css) {
@@ -142,11 +142,11 @@ module.exports = (options = {}) => {
         typeof opts.rootValue === "function"
           ? opts.rootValue(css.source.input)
           : opts.rootValue;
-      pxReplace = createPxReplace(
+      pxReplace.set(css.source.input.file, createPxReplace(
         rootValue,
         opts.unitPrecision,
-        opts.minPixelValue
-      );
+        opts.minPixelValue,
+      ));
     },
     Declaration(decl) {
       if (isExcludeFile) return;
@@ -158,7 +158,7 @@ module.exports = (options = {}) => {
       )
         return;
 
-      const value = decl.value.replace(pxRegex, pxReplace);
+      const value = decl.value.replace(pxRegex, pxReplace.get(decl.source.input.file));
 
       // if rem unit already exists, do not add or replace
       if (declarationExists(decl.parent, decl.prop, value)) return;
