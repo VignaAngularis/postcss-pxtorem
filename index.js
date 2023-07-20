@@ -123,7 +123,7 @@ module.exports = (options = {}) => {
   const satisfyPropList = createPropListMatcher(opts.propList);
   const exclude = opts.exclude;
   let isExcludeFile = false;
-  let pxReplace;
+  let pxReplace = new Map();
   return {
     postcssPlugin: "postcss-pxtorem",
     Once(css) {
@@ -143,11 +143,11 @@ module.exports = (options = {}) => {
         typeof opts.rootValue === "function"
           ? opts.rootValue(css.source.input)
           : opts.rootValue;
-      pxReplace = createPxReplace(
+      pxReplace.set(css.source.input.file, createPxReplace(
         rootValue,
         opts.unitPrecision,
         opts.minPixelValue,
-      );
+      ));
     },
     Declaration(decl) {
       if (isExcludeFile) return;
@@ -159,7 +159,7 @@ module.exports = (options = {}) => {
       )
         return;
 
-      const value = decl.value.replace(pxRegex(opts.unit), pxReplace);
+      const value = decl.value.replace(pxRegex, pxReplace.get(decl.source.input.file));
 
       // if rem unit already exists, do not add or replace
       if (declarationExists(decl.parent, decl.prop, value)) return;
