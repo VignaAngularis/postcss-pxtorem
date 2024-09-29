@@ -1,7 +1,7 @@
 {
   "name": "better-postcss-pxtorem",
   "description": "A CSS post-processor that converts px to rem.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "VignaAngularis",
   "license": "MIT",
   "repository": {
