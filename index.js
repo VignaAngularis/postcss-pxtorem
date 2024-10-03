@@ -91,35 +91,46 @@ function createPropListMatcher(propList) {
     return (
       (hasWild ||
         lists.exact.indexOf(prop) > -1 ||
-        lists.contain.some(function (m) {
+        lists.contain.some(function(m) {
           return prop.indexOf(m) > -1;
         }) ||
-        lists.startWith.some(function (m) {
+        lists.startWith.some(function(m) {
           return prop.indexOf(m) === 0;
         }) ||
-        lists.endWith.some(function (m) {
+        lists.endWith.some(function(m) {
           return prop.indexOf(m) === prop.length - m.length;
         })) &&
       !(
         lists.notExact.indexOf(prop) > -1 ||
-        lists.notContain.some(function (m) {
+        lists.notContain.some(function(m) {
           return prop.indexOf(m) > -1;
         }) ||
-        lists.notStartWith.some(function (m) {
+        lists.notStartWith.some(function(m) {
           return prop.indexOf(m) === 0;
         }) ||
-        lists.notEndWith.some(function (m) {
+        lists.notEndWith.some(function(m) {
           return prop.indexOf(m) === prop.length - m.length;
         })
       )
     );
   };
 }
+
+function shouldExcludeFile(filePath, exclude) {
+  return (
+    exclude &&
+    ((type.isFunction(exclude) && exclude(filePath)) ||
+      (type.isString(exclude) && filePath.indexOf(exclude) !== -1) ||
+      filePath.match(exclude) !== null)
+  );
+}
+
 module.exports = (options = {}) => {
   convertLegacyOptions(options);
   const opts = Object.assign({}, defaults, options);
   const satisfyPropList = createPropListMatcher(opts.propList);
   const exclude = opts.exclude;
+  const pxReplaceCache = new Map();
 
   return {
     postcssPlugin: "postcss-pxtorem",
@@ -129,26 +140,25 @@ module.exports = (options = {}) => {
       return {
         Once(css) {
           const filePath = css.source.input.file;
-          if (
-            exclude &&
-            ((type.isFunction(exclude) && exclude(filePath)) ||
-              (type.isString(exclude) && filePath.indexOf(exclude) !== -1) ||
-              filePath.match(exclude) !== null)
-          ) {
-            isExcludeFile = true;
-          } else {
-            isExcludeFile = false;
-          }
+          isExcludeFile = shouldExcludeFile(filePath, exclude);
 
           const rootValue =
             typeof opts.rootValue === "function"
               ? opts.rootValue(css.source.input)
               : opts.rootValue;
-          pxReplace = createPxReplace(
-            rootValue,
-            opts.unitPrecision,
-            opts.minPixelValue
-          );
+          const key = `${rootValue}-${opts.unitPrecision}-${opts.minPixelValue}`;
+          const cache = pxReplaceCache.get(key);
+          if (cache) {
+            pxReplace = cache;
+          } else {
+            const cache = createPxReplace(
+              rootValue,
+              opts.unitPrecision,
+              opts.minPixelValue
+            );
+            pxReplaceCache.set(key, cache);
+            pxReplace = cache;
+          }
         },
         Declaration(decl) {
           if (isExcludeFile) return;
