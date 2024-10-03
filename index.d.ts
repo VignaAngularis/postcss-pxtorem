@@ -7,11 +7,11 @@ interface Options {
   rootValue?: RootValue;
   unitPrecision?: number;
   propList?: string[];
-  selectorBlackList?: string[];
+  selectorBlackList?: Array<string | RegExp>;
   replace?: boolean;
   mediaQuery?: boolean;
   minPixelValue?: number;
-  exclude?: string;
+  exclude?: string | RegExp | ((file: string) => boolean);
   unit?: string;
   /**
    * @deprecated use `rootValue` instead
@@ -24,7 +24,7 @@ interface Options {
   /**
    * @deprecated use `selectorBlackList` instead
    */
-  selector_black_list?: string[];
+  selector_black_list?: Array<string | RegExp>;
   /**
    * @deprecated use `propList` instead
    */
