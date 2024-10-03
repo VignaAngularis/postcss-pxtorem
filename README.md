@@ -1,11 +1,11 @@
-# postcss-pxtorem [![NPM version](https://badge.fury.io/js/postcss-pxtorem.svg)](http://badge.fury.io/js/postcss-pxtorem)
+# better-postcss-pxtorem [![NPM version](https://badge.fury.io/js/better-postcss-pxtorem.svg)](http://badge.fury.io/js/better-postcss-pxtorem)
 
 A plugin for [PostCSS](https://github.com/ai/postcss) that generates rem units from pixel units.
 
 ## Install
 
 ```shell
-$ npm install postcss postcss-pxtorem --save-dev
+$ npm install postcss better-postcss-pxtorem --save-dev
 ```
 
 ## Usage
@@ -40,7 +40,7 @@ h1 {
 ```js
 var fs = require('fs');
 var postcss = require('postcss');
-var pxtorem = require('postcss-pxtorem');
+var pxtorem = require('better-postcss-pxtorem');
 var css = fs.readFileSync('main.css', 'utf8');
 var options = {
     replace: false
@@ -90,9 +90,9 @@ Default:
 - `minPixelValue` (Number) Set the minimum pixel value to replace.
 - `exclude` (String, Regexp, Function) The file path to ignore and leave as px.
     - If value is string, it checks to see if file path contains the string.
-        - `'exclude'` will match `\project\postcss-pxtorem\exclude\path`
+        - `'exclude'` will match `\project\better-postcss-pxtorem\exclude\path`
     - If value is regexp, it checks to see if file path matches the regexp.
-        - `/exclude/i` will match `\project\postcss-pxtorem\exclude\path`
+        - `/exclude/i` will match `\project\better-postcss-pxtorem\exclude\path`
     - If value is function, you can use exclude function to return a true and the file will be ignored.
         - the callback will pass the file path as  a parameter, it should returns a Boolean result.
         - `function (file) { return file.indexOf('exclude') !== -1; }`
@@ -104,7 +104,7 @@ Default:
 var gulp = require('gulp');
 var postcss = require('gulp-postcss');
 var autoprefixer = require('autoprefixer');
-var pxtorem = require('postcss-pxtorem');
+var pxtorem = require('better-postcss-pxtorem');
 
 gulp.task('css', function () {
 
@@ -132,7 +132,7 @@ Currently, the easiest way to have a single property ignored is to use a capital
     font-size: 16px; // converted to 1rem
 }
 
-// `Px` or `PX` is ignored by `postcss-pxtorem` but still accepted by browsers
+// `Px` or `PX` is ignored by `better-postcss-pxtorem` but still accepted by browsers
 .ignore {
     border: 1Px solid; // ignored
     border-width: 2PX; // ignored
