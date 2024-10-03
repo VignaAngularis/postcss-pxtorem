@@ -115,67 +115,71 @@ function createPropListMatcher(propList) {
     );
   };
 }
-
 module.exports = (options = {}) => {
   convertLegacyOptions(options);
   const opts = Object.assign({}, defaults, options);
   const satisfyPropList = createPropListMatcher(opts.propList);
   const exclude = opts.exclude;
-  let isExcludeFile = false;
-  let pxReplace = new Map();
+
   return {
     postcssPlugin: "postcss-pxtorem",
-    Once(css) {
-      const filePath = css.source.input.file;
-      if (
-        exclude &&
-        ((type.isFunction(exclude) && exclude(filePath)) ||
-          (type.isString(exclude) && filePath.indexOf(exclude) !== -1) ||
-          filePath.match(exclude) !== null)
-      ) {
-        isExcludeFile = true;
-      } else {
-        isExcludeFile = false;
-      }
+    prepare() {
+      let isExcludeFile = false;
+      let pxReplace;
+      return {
+        Once(css) {
+          const filePath = css.source.input.file;
+          if (
+            exclude &&
+            ((type.isFunction(exclude) && exclude(filePath)) ||
+              (type.isString(exclude) && filePath.indexOf(exclude) !== -1) ||
+              filePath.match(exclude) !== null)
+          ) {
+            isExcludeFile = true;
+          } else {
+            isExcludeFile = false;
+          }
 
-      const rootValue =
-        typeof opts.rootValue === "function"
-          ? opts.rootValue(css.source.input)
-          : opts.rootValue;
-      pxReplace.set(css.source.input.file, createPxReplace(
-        rootValue,
-        opts.unitPrecision,
-        opts.minPixelValue,
-      ));
-    },
-    Declaration(decl) {
-      if (isExcludeFile) return;
+          const rootValue =
+            typeof opts.rootValue === "function"
+              ? opts.rootValue(css.source.input)
+              : opts.rootValue;
+          pxReplace = createPxReplace(
+            rootValue,
+            opts.unitPrecision,
+            opts.minPixelValue
+          );
+        },
+        Declaration(decl) {
+          if (isExcludeFile) return;
 
-      if (
-        decl.value.indexOf("px") === -1 ||
-        !satisfyPropList(decl.prop) ||
-        blacklistedSelector(opts.selectorBlackList, decl.parent.selector)
-      )
-        return;
+          if (
+            decl.value.indexOf("px") === -1 ||
+            !satisfyPropList(decl.prop) ||
+            blacklistedSelector(opts.selectorBlackList, decl.parent.selector)
+          )
+            return;
 
-      const value = decl.value.replace(pxRegex, pxReplace.get(decl.source.input.file));
+          const value = decl.value.replace(pxRegex, pxReplace);
 
-      // if rem unit already exists, do not add or replace
-      if (declarationExists(decl.parent, decl.prop, value)) return;
+          // if rem unit already exists, do not add or replace
+          if (declarationExists(decl.parent, decl.prop, value)) return;
 
-      if (opts.replace) {
-        decl.value = value;
-      } else {
-        decl.cloneAfter({ value: value });
-      }
-    },
-    AtRule(atRule) {
-      if (isExcludeFile) return;
+          if (opts.replace) {
+            decl.value = value;
+          } else {
+            decl.cloneAfter({ value: value });
+          }
+        },
+        AtRule(atRule) {
+          if (isExcludeFile) return;
 
-      if (opts.mediaQuery && atRule.name === "media") {
-        if (atRule.params.indexOf("px") === -1) return;
-        atRule.params = atRule.params.replace(pxRegex, pxReplace);
-      }
+          if (opts.mediaQuery && atRule.name === "media") {
+            if (atRule.params.indexOf("px") === -1) return;
+            atRule.params = atRule.params.replace(pxRegex, pxReplace);
+          }
+        }
+      };
     }
   };
 };
