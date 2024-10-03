@@ -12,7 +12,7 @@ interface Options {
   mediaQuery?: boolean;
   minPixelValue?: number;
   exclude?: string;
-
+  unit?: string;
   /**
    * @deprecated use `rootValue` instead
    */
