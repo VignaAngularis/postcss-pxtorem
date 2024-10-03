@@ -79,7 +79,7 @@ describe("pxtorem", function() {
   });
 
   it("should remain unitless if 0", function() {
-    var expected = ".rule { font-size: 0px; font-size: 0; }";
+    var expected = ".rule { font-size: 0px; font-size: 0rem; }";
     var processed = postcss(pxtorem()).process(expected).css;
 
     expect(processed).toBe(expected);

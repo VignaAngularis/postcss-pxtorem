@@ -92,24 +92,24 @@ function createPropListMatcher(propList) {
     return (
       (hasWild ||
         lists.exact.indexOf(prop) > -1 ||
-        lists.contain.some(function(m) {
+        lists.contain.some(function (m) {
           return prop.indexOf(m) > -1;
         }) ||
-        lists.startWith.some(function(m) {
+        lists.startWith.some(function (m) {
           return prop.indexOf(m) === 0;
         }) ||
-        lists.endWith.some(function(m) {
+        lists.endWith.some(function (m) {
           return prop.indexOf(m) === prop.length - m.length;
         })) &&
       !(
         lists.notExact.indexOf(prop) > -1 ||
-        lists.notContain.some(function(m) {
+        lists.notContain.some(function (m) {
           return prop.indexOf(m) > -1;
         }) ||
-        lists.notStartWith.some(function(m) {
+        lists.notStartWith.some(function (m) {
           return prop.indexOf(m) === 0;
         }) ||
-        lists.notEndWith.some(function(m) {
+        lists.notEndWith.some(function (m) {
           return prop.indexOf(m) === prop.length - m.length;
         })
       )
@@ -132,7 +132,7 @@ module.exports = (options = {}) => {
   const satisfyPropList = createPropListMatcher(opts.propList);
   const exclude = opts.exclude;
   const pxReplaceCache = new Map();
-
+  const pxRegexResult = pxRegex(opts.unit);
   return {
     postcssPlugin: "postcss-pxtorem",
     prepare() {
@@ -142,7 +142,6 @@ module.exports = (options = {}) => {
         Once(css) {
           const filePath = css.source.input.file;
           isExcludeFile = shouldExcludeFile(filePath, exclude);
-
           const rootValue =
             typeof opts.rootValue === "function"
               ? opts.rootValue(css.source.input)
@@ -171,7 +170,7 @@ module.exports = (options = {}) => {
           )
             return;
 
-          const value = decl.value.replace(pxRegex, pxReplace);
+          const value = decl.value.replace(pxRegexResult, pxReplace);
 
           // if rem unit already exists, do not add or replace
           if (declarationExists(decl.parent, decl.prop, value)) return;
@@ -187,11 +186,11 @@ module.exports = (options = {}) => {
 
           if (opts.mediaQuery && atRule.name === "media") {
             if (atRule.params.indexOf(opts.unit) === -1) return;
-            atRule.params = atRule.params.replace(pxRegex(opts.unit), pxReplace);
+            atRule.params = atRule.params.replace(pxRegexResult, pxReplace);
           }
         },
-      };
+      }
     }
-  }
-}
+  };
+};
 module.exports.postcss = true;
